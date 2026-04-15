@@ -1,0 +1,238 @@
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英文單字能力測驗</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --success-color: #2ecc71;
+            --error-color: #e74c3c;
+            --bg-color: #f4f7f6;
+            --text-color: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 30px;
+        }
+
+        .quiz-item {
+            margin-bottom: 25px;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .question {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .options {
+            display: grid;
+            gap: 10px;
+        }
+
+        .option-label {
+            display: block;
+            padding: 10px 15px;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .option-label:hover {
+            background: #e9ecef;
+        }
+
+        input[type="radio"] {
+            display: none;
+        }
+
+        input[type="radio"]:checked + .option-label {
+            border-color: var(--primary-color);
+            background-color: #eef5ff;
+        }
+
+        .btn-container {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        button {
+            padding: 12px 30px;
+            font-size: 18px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background-color: #357abd;
+        }
+
+        #result {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 8px;
+            display: none;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .correct {
+            color: var(--success-color);
+            font-weight: bold;
+        }
+
+        .wrong {
+            color: var(--error-color);
+            font-weight: bold;
+        }
+
+        .feedback {
+            margin-top: 5px;
+            font-size: 14px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>英文單字測驗</h1>
+    <form id="quizForm">
+        <div id="quizContainer">
+            </div>
+        
+        <div class="btn-container">
+            <button type="button" onclick="submitQuiz()">提交測驗</button>
+            <button type="button" onclick="location.reload()" style="background-color: #6c757d; margin-left: 10px;">重新開始</button>
+        </div>
+    </form>
+
+    <div id="result"></div>
+</div>
+
+<script>
+    const quizData = [
+        {
+            question: "1. 請問 'Ambiguous' 的中文意思是什麼？",
+            options: ["雄心壯志的", "模稜兩可的", "勤奮的", "慷慨的"],
+            correct: 1
+        },
+        {
+            question: "2. Which word means 'to improve or make something better'?",
+            options: ["Diminish", "Enhance", "Neglect", "Erase"],
+            correct: 1
+        },
+        {
+            question: "3. 'Meticulous' refers to being very careful about _____.",
+            options: ["Speed", "Money", "Small details", "Strength"],
+            correct: 2
+        },
+        {
+            question: "4. 請問 'Inevitable' 的意思是什麼？",
+            options: ["不可避免的", "罕見的", "可選的", "令人驚訝的"],
+            correct: 0
+        },
+        {
+            question: "5. Choose the synonym for 'Abundant'.",
+            options: ["Scarce", "Plentiful", "Empty", "Heavy"],
+            correct: 1
+        }
+    ];
+
+    function initQuiz() {
+        const container = document.getElementById('quizContainer');
+        quizData.forEach((data, index) => {
+            let optionsHtml = '';
+            data.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <label>
+                        <input type="radio" name="q${index}" value="${optIndex}">
+                        <span class="option-label">${opt}</span>
+                    </label>
+                `;
+            });
+
+            container.innerHTML += `
+                <div class="quiz-item" id="qBox${index}">
+                    <div class="question">${data.question}</div>
+                    <div class="options">
+                        ${optionsHtml}
+                    </div>
+                    <div class="feedback" id="feedback${index}"></div>
+                </div>
+            `;
+        });
+    }
+
+    function submitQuiz() {
+        let score = 0;
+        const resultDiv = document.getElementById('result');
+        
+        quizData.forEach((data, index) => {
+            const selected = document.querySelector(`input[name="q${index}"]:checked`);
+            const feedback = document.getElementById(`feedback${index}`);
+            const qBox = document.getElementById(`qBox${index}`);
+            
+            feedback.style.display = 'block';
+            
+            if (selected) {
+                const answer = parseInt(selected.value);
+                if (answer === data.correct) {
+                    score++;
+                    feedback.innerHTML = '<span class="correct">✓ 正確</span>';
+                } else {
+                    feedback.innerHTML = `<span class="wrong">✗ 錯誤 (正確答案：${data.options[data.correct]})</span>`;
+                }
+            } else {
+                feedback.innerHTML = `<span class="wrong">⚠ 未作答 (正確答案：${data.options[data.correct]})</span>`;
+            }
+        });
+
+        const total = quizData.length;
+        const percentage = (score / total) * 100;
+        
+        resultDiv.style.display = 'block';
+        resultDiv.style.backgroundColor = percentage >= 60 ? '#d4edda' : '#f8d7da';
+        resultDiv.innerHTML = `得分：${score} / ${total} (${percentage}%)`;
+        
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    initQuiz();
+</script>
+
+</body>
+</html>"""
+
+with open("english_vocabulary_quiz.html", "w", encoding="utf-8") as f:
+    f.write(html_content)
